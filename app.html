@@ -39,6 +39,7 @@
                 padding-bottom:20px;
             }
             .button {
+                margin: 0px 20px ;
                 padding: 15px 50px;
                 font-size: 24px;
                 text-align: center;
@@ -78,8 +79,11 @@
   <div class="content">
     <div class="card">
       <h2>Output - GPIO 2</h2>
-      <p class="val">state: <span id="state-btn1"></span></p>
-      <p><button id="button-1" class="button">Toggle</button></p>
+      <p class="val">state: <span id="light-1"></span></p>
+      <p>
+        <button id="button-1-on" class="button">ON</button>
+        <button id="button-1-off" class="button">OFF</button>
+    </p>
     </div>
   </div>
   <div class="content">
@@ -97,15 +101,25 @@
 <script>
     const socket = io();    // khởi tạo websocket 
 
-    const btn1 = document.querySelector('#button-1');
-    var bool = true;
+    const btn1_on = document.querySelector('#button-1-on');
+    // var bool = true;
 
-    btn1.addEventListener('click', (e) => {
+    btn1_on.addEventListener('click', (e) => {
         //const number = 1;
-        bool = !bool
+        // bool = !bool
         // console.log('listened Click');
-        socket.emit('btn-1', {
-            message: bool
+        socket.emit('button-1', {
+            message: 'on'
+        });
+    })
+
+    const btn1_off = document.querySelector('#button-1-off');
+    // var bool = true;
+
+    btn1_off.addEventListener('click', (e) => {
+        // console.log('listened Click');
+        socket.emit('button-1', {
+            message: 'off'
         });
     })
 
@@ -128,6 +142,12 @@
     socket.on('humi-1', (mess) => {
         humi_dht11.innerHTML = mess + '%';
         // console.log(mess);
+    });
+
+    const light1 = document.querySelector('#light-1');
+    socket.on('light-1', (mess) => {
+        light1.innerHTML = mess.toUpperCase();
+        console.log(mess);
     });
 
     // const chatForm = document.querySelector('#chat-form');

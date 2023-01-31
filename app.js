@@ -57,10 +57,30 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('btn-1', data => {
-        // console.log(data);
-        io.emit('state-1', data);
+    onValue(ref(database, '/state/light/device-1/now/'), (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            console.log(data.state);
+            io.emit('light-1', data.state);      
+        } else {
+            console.log("(onValue) No data available");
+        }
     });
+
+    socket.on('button-1', data => {
+        // console.log(data);
+        // io.emit('state-1', data);
+        set(ref(database, 'control/light/device-1'), {
+            signal: data.message
+          })
+          .then(()=>{
+            // res.status(200).send(JSON.stringify(req.body));
+          })
+          .catch((e)=>console.log(`(E): ${e}`))
+    });
+
+
+
 
     
 });
@@ -97,6 +117,6 @@ server.listen(port, () => {
     console.log(`App listening on port ${port}`);
 });
 
-// get(child(database, 'temp/now')).then((snapshot) => {
+
 
 

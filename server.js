@@ -85,22 +85,53 @@ app.post("/publish/esp32DHT11/humidity", (req, res) => {
   // e = 1;
 }) 
   
+app.post("/publish/state/light/device-1", (req, res) => {
+  console.log(`Publish to state/light/device-1 with Payload `);
+  console.log(req.body);
+  
+  // set(push(ref(database, 'state/light/device-1')), {
+  //   sate: esp32DHT11.humidity
+  // })
+  // esp32DHT11.humidity = req.body.humidity;
+  set(ref(database, 'state/light/device-1/now'), {
+    state: req.body.state
+  })
+  .then(()=>{
+    res.status(200).send(JSON.stringify(req.body));
+  })
+  .catch((e)=>console.log(`(E): ${e}`))
+
+}) 
 // ##############################
 app.get("/sse", (req, res) => {
-  var localVersion = 0
+  // var localVersion = 0
   res.set("Content-Type", "text/event-stream")
   res.set("Connection", "keep-alive")
   res.set("Cache-Control", "no-cache")
   res.set("Access-Control-Allow-Origin", "*")
   console.log("client connected to sse")
-  setInterval(function(){
-    // if(localVersion < globalVersion){
-    if( e ){
-      res.status(200).write(`data: ${JSON.stringify(esp32DHT11)}\n\n`);
-      // localVersion = globalVersion
-      e = 0;
+  // setInterval(function(){
+  //   // if(localVersion < globalVersion){
+  //   if( e ){
+  //     res.status(200).write(`data: ${JSON.stringify(esp32DHT11)}\n\n`);
+  //     // localVersion = globalVersion
+  //     e = 0;
+  //   }
+  // }, 100)
+
+  onValue(ref(database, 'control/light/device-1'), (snapshot) => {
+    const data = snapshot.val();
+    console.log(data);
+    if (data) {
+        res.status(200).write(`data: ${JSON.stringify(data)}\n\n`);   
+    } else {
+        console.log("(onValue) No data available");
     }
-  }, 100)
+  })
+  // .then(()=>{
+  //   // res.status(200).send(JSON.stringify(req.body));
+  // })
+  // .catch((e)=>console.log(`(E): ${e}`))
 })
 // ##############################
 app.listen(PORT, err => {
