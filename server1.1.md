@@ -27,15 +27,18 @@ app.get("/", (req, res) => {
 
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ [hc->cloud]
-app.post("/publish/livingroom/sensordht11/temp", (req, res) => {
+app.post("/publish/esp32DHT11/temperature", (req, res) => {
   console.log(`Publish to esp32DHT11/temperature with Payload `);
+//   companies[req.params.companyId].subscribers++
   console.log(req.body);
   
-  set(push(ref(database, 'livingroom/sensordht11/temp/')), { // lưu giá trị trước đó vào firabase (khác /now)
+  set(push(ref(database, 'temp/')), {
     temp: esp32DHT11.temperature
   })
   esp32DHT11.temperature = req.body.temperature;
-  set(ref(database, 'livingroom/sensordht11/temp/now'), { // lưu giá trị nhận được vào firabase (tại /now)
+//   globalVersion++
+//   res.status(200).json({"message":`subscribed to company ${req.params.companyId}`})
+  set(ref(database, 'temp/now'), {
     temp: esp32DHT11.temperature
   })
   .then(()=>{
@@ -48,16 +51,16 @@ app.post("/publish/livingroom/sensordht11/temp", (req, res) => {
 }) 
 
 // ~~~~~~~~~~~~~~~
-app.post("/publish/livingroom/sensordht11/humi", (req, res) => {
+app.post("/publish/esp32DHT11/humidity", (req, res) => {
   console.log(`Publish to esp32DHT11/humidity with Payload `);
 //   companies[req.params.companyId].subscribers++
   console.log(req.body);
   
-  set(push(ref(database, 'livingroom/sensordht11/humi/')), {
+  set(push(ref(database, 'humi/')), {
     humi: esp32DHT11.humidity
   })
   esp32DHT11.humidity = req.body.humidity;
-  set(ref(database, 'livingroom/sensordht11/humi/now'), {
+  set(ref(database, 'humi/now'), {
     humi: esp32DHT11.humidity
   })
   .then(()=>{
@@ -69,11 +72,15 @@ app.post("/publish/livingroom/sensordht11/humi", (req, res) => {
   // e = 1;
 }) 
   
-app.post("/publish/livingroom/lamp1", (req, res) => {
+app.post("/publish/state/light/device-1", (req, res) => {
   console.log(`Publish to state/light/device-1 with Payload `);
   console.log(req.body);
   
-  set(ref(database, 'livingroom/lamp1/now'), {
+  // set(push(ref(database, 'state/light/device-1')), {
+  //   sate: esp32DHT11.humidity
+  // })
+  // esp32DHT11.humidity = req.body.humidity;
+  set(ref(database, 'state/light/device-1/now'), {
     state: req.body.state
   })
   .then(()=>{
@@ -82,44 +89,25 @@ app.post("/publish/livingroom/lamp1", (req, res) => {
   .catch((e)=>console.log(`(E): ${e}`))
 
 }) 
-
-app.post("/publish/bedroom/lamp1", (req, res) => {
-  console.log(`Publish to state/light/device-2 with Payload `);
-  console.log(req.body);
-
-  set(ref(database, 'bedroom/lamp1/now'), {
-    state: req.body.state
-  })
-  .then(()=>{
-    res.status(200).send(JSON.stringify(req.body));
-  })
-  .catch((e)=>console.log(`(E): ${e}`))
-
-})
-
-app.post("/publish/kitchen/lamp1", (req, res) => {
-  console.log(`Publish to state/light/device-3 with Payload `);
-  console.log(req.body);
-  set(ref(database, 'kitchen/lamp1/now'), {
-    state: req.body.state
-  })
-  .then(()=>{
-    res.status(200).send(JSON.stringify(req.body));
-  })
-  .catch((e)=>console.log(`(E): ${e}`))
-
-})
-
+// ##############################
 app.get("/sse", (req, res) => {
+  // var localVersion = 0
   res.set("Content-Type", "text/event-stream")
   res.set("Connection", "keep-alive")
   res.set("Cache-Control", "no-cache")
   res.set("Access-Control-Allow-Origin", "*")
   console.log("client connected to sse")
+  // setInterval(function(){
+  //   // if(localVersion < globalVersion){
+  //   if( e ){
+  //     res.status(200).write(`data: ${JSON.stringify(esp32DHT11)}\n\n`);
+  //     // localVersion = globalVersion
+  //     e = 0;
+  //   }
+  // }, 100)
 
-  onValue(ref(database, 'control/livingroom/lamp1'), (snapshot) => {
+  onValue(ref(database, 'control/light/device-1'), (snapshot) => {
     const data = snapshot.val();
-    data.device = 1; // device lamp1 livingroom
     console.log(data);
     if (data) {
         res.status(200).write(`data: ${JSON.stringify(data)}\n\n`);   
@@ -127,30 +115,12 @@ app.get("/sse", (req, res) => {
         console.log("(onValue) No data available");
     }
   })
-
-  onValue(ref(database, 'control/bedroom/lamp1'), (snapshot) => {
-    const data = snapshot.val();
-    data.device = 2;
-    console.log(data);
-    if (data) {
-        res.status(200).write(`data: ${JSON.stringify(data)}\n\n`);   
-    } else {
-        console.log("(onValue) No data available");
-    }
-  })
-
-  onValue(ref(database, 'control/kitchen/lamp1'), (snapshot) => {
-    const data = snapshot.val();
-    data.device = 3;
-    console.log(data);
-    if (data) {
-        res.status(200).write(`data: ${JSON.stringify(data)}\n\n`);   
-    } else {
-        console.log("(onValue) No data available");
-    }
-  })
+  // .then(()=>{
+  //   // res.status(200).send(JSON.stringify(req.body));
+  // })
+  // .catch((e)=>console.log(`(E): ${e}`))
 })
-
+// ##############################
 app.listen(PORT, err => {
   if(err){
     console.log("Server cannot listen..."); 
