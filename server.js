@@ -47,7 +47,6 @@ app.post("/publish/livingroom/sensordht11/temp", (req, res) => {
   // e = 1;
 }) 
 
-// ~~~~~~~~~~~~~~~
 app.post("/publish/livingroom/sensordht11/humi", (req, res) => {
   console.log(`Publish to esp32DHT11/humidity with Payload `);
 //   companies[req.params.companyId].subscribers++
@@ -141,9 +140,9 @@ app.get("/sse", (req, res) => {
 
   onValue(ref(database, 'control/kitchen/lamp1'), (snapshot) => {
     const data = snapshot.val();
-    data.device = 3;
-    console.log(data);
-    if (data) {
+    if (data.signal != 'rst') {
+        data.device = 3;
+        console.log(data);
         res.status(200).write(`data: ${JSON.stringify(data)}\n\n`);   
     } else {
         console.log("(onValue) No data available");
