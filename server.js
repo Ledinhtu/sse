@@ -18,24 +18,16 @@ var esp32DHT11 = {
   "humidity":{"value":0}
 }
 
-// ##############################
-app.get("/", (req, res) => {
-  var html = fs.readFileSync(path.join(__dirname, "index.html"), "utf8")
-  res.status(200).send(html);
-})
-
-
-
-// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ [hc->cloud]
+// xử lí khi có request POST tới
 app.post("/publish/livingroom/sensordht11/temp", (req, res) => {
   console.log(`Publish to esp32DHT11/temperature with Payload `);
   console.log(req.body);
   
-  set(push(ref(database, 'livingroom/sensordht11/temp/')), { // lưu giá trị trước đó vào firabase (khác /now)
+  set(push(ref(database, 'livingroom/sensordht11/temp/')), { // lưu giá trị cũ vào firabase (khác /now)
     temp: esp32DHT11.temperature
   })
   esp32DHT11.temperature = req.body.temperature;
-  set(ref(database, 'livingroom/sensordht11/temp/now'), { // lưu giá trị nhận được vào firabase (tại /now)
+  set(ref(database, 'livingroom/sensordht11/temp/now'), { // lưu giá trị mới vào firabase (tại /now)
     temp: esp32DHT11.temperature
   })
   .then(()=>{
@@ -109,6 +101,7 @@ app.post("/publish/kitchen/lamp1", (req, res) => {
 
 })
 
+// Xử lí requset connect SSE
 app.get("/sse", (req, res) => {
   res.set("Content-Type", "text/event-stream")
   res.set("Connection", "keep-alive")
@@ -116,6 +109,7 @@ app.get("/sse", (req, res) => {
   res.set("Access-Control-Allow-Origin", "*")
   console.log("client connected to sse")
 
+  // bắt sự thay đổi của tín hiệu điều khiển đèn 1 phòng khách trên firebase
   onValue(ref(database, 'control/livingroom/lamp1'), (snapshot) => {
     const data = snapshot.val();
     data.device = 1; // device lamp1 livingroom
@@ -127,6 +121,7 @@ app.get("/sse", (req, res) => {
     }
   })
 
+  // bắt sự thay đổi của tín hiệu điều khiển đèn 1 phòng ngủ trên firebase
   onValue(ref(database, 'control/bedroom/lamp1'), (snapshot) => {
     const data = snapshot.val();
     data.device = 2;
@@ -138,6 +133,7 @@ app.get("/sse", (req, res) => {
     }
   })
 
+  // bắt sự thay đổi của tín hiệu điều khiển đèn 1 phòng bếp trên firebase
   onValue(ref(database, 'control/kitchen/lamp1'), (snapshot) => {
     const data = snapshot.val();
     if (data.signal != 'rst') {
@@ -150,6 +146,7 @@ app.get("/sse", (req, res) => {
   })
 })
 
+// khởi tao server lắng nghe cổng `PORT`
 app.listen(PORT, err => {
   if(err){
     console.log("Server cannot listen..."); 
